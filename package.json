@@ -1,0 +1,39 @@
+{
+  "name": "@stats-forge/registry-root",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "lefthook install",
+    "build": "pnpm -r --filter \"./packages/*\" run build",
+    "cli": "pnpm run build && node packages/cli/build/index.js",
+    "test": "vitest --run",
+    "test:coverage": "vitest --run --config vitest.config.coverage.ts",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "lint:knip": "knip",
+    "lint:publish": "pnpm -r --filter \"./packages/*\" run lint:publish",
+    "typecheck": "pnpm run build && pnpm -r --filter \"./packages/*\" run typecheck",
+    "check-all": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run lint:knip && pnpm run test:coverage && pnpm run lint:publish",
+    "release": "pnpm run build && changeset publish"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "@marcalexiei/oxfmt-config": "2.0.1",
+    "@marcalexiei/oxlint-config": "1.9.0",
+    "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "catalog:default",
+    "knip": "6.44.1",
+    "lefthook": "2.2.1",
+    "oxfmt": "catalog:default",
+    "oxlint": "1.92.0",
+    "oxlint-tsgolint": "7.0.2006",
+    "publint": "0.3.25",
+    "typescript": "7.0.2",
+    "vitest": "catalog:default"
+  },
+  "packageManager": "pnpm@12.17.0+sha512.b8d223ebec04b580a89ed206daa71d1bccb6a1ee1d52efa95cc3b0db75271561df8f0d8e2c43add39c5ec08018af7a8a95108e7090f95a29f88727b7a40fd53d"
+}

@@ -1,0 +1,71 @@
+{
+  "name": "@stats-forge/registry-stats-forge-core",
+  "version": "0.0.0",
+  "description": "Draw a package registry's stats as an SVG card: npm and crates.io",
+  "keywords": [
+    "cards",
+    "crates-io",
+    "npm",
+    "registry-stats-forge",
+    "stats-forge",
+    "svg"
+  ],
+  "homepage": "https://github.com/stats-forge/registry-stats-forge",
+  "bugs": {
+    "url": "https://github.com/stats-forge/registry-stats-forge/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Marco Pasqualetti",
+    "url": "https://github.com/marcalexiei"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stats-forge/registry-stats-forge.git",
+    "directory": "packages/core"
+  },
+  "files": [
+    "build",
+    "src",
+    "README.md"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "./src/common/error.ts",
+    "./build/common/error.js"
+  ],
+  "exports": {
+    "./api": {
+      "@stats/source": "./src/api/index.ts",
+      "default": "./build/api/index.js"
+    },
+    "./fetchers": {
+      "@stats/source": "./src/fetchers/index.ts",
+      "default": "./build/fetchers/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build",
+    "lint:publish": "attw --pack . --profile node16 --ignore-rules cjs-resolves-to-esm && publint --strict",
+    "test": "vitest",
+    "typecheck": "tsc -p tsconfig.typecheck.json"
+  },
+  "dependencies": {
+    "@stats-forge/card-kit": "^0.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@types/node": "26.6.6",
+    "jsdom": "catalog:default",
+    "vitest": "catalog:default"
+  },
+  "engines": {
+    "node": "^24 || >=26"
+  }
+}

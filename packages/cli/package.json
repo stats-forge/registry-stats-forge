@@ -1,0 +1,63 @@
+{
+  "name": "@stats-forge/registry-stats-forge-cli",
+  "version": "0.0.0",
+  "description": "Render an npm package's or a crate's stats card to a local SVG file",
+  "keywords": [
+    "cli",
+    "crates-io",
+    "npm",
+    "registry-stats-forge",
+    "stats-forge",
+    "svg"
+  ],
+  "homepage": "https://github.com/stats-forge/registry-stats-forge",
+  "bugs": {
+    "url": "https://github.com/stats-forge/registry-stats-forge/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Marco Pasqualetti",
+    "url": "https://github.com/marcalexiei"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stats-forge/registry-stats-forge.git",
+    "directory": "packages/cli"
+  },
+  "bin": {
+    "registry-stats-forge": "./bin.js"
+  },
+  "files": [
+    "bin.js",
+    "build",
+    "src"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "@stats/source": "./src/index.ts",
+      "default": "./build/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build",
+    "lint:publish": "attw --pack . --profile node16 --ignore-rules cjs-resolves-to-esm && publint --strict",
+    "dev": "node --conditions=@stats/source src/index.ts",
+    "test": "vitest",
+    "typecheck": "tsc -p tsconfig.typecheck.json"
+  },
+  "dependencies": {
+    "@stats-forge/registry-stats-forge-core": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "vitest": "catalog:default"
+  },
+  "engines": {
+    "node": "^24 || >=26"
+  }
+}

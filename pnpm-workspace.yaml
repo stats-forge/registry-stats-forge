@@ -1,0 +1,33 @@
+packages:
+  - packages/*
+
+allowBuilds:
+  lefthook: true
+
+catalog:
+  '@vitest/coverage-v8': 5.1.0
+  jsdom: 31.0.0
+  oxfmt: 0.77.0
+  vitest: 5.1.0
+
+# Deliberately stricter than pnpm's 1440 default (3 days vs 1)
+minimumReleaseAge: 4320
+
+# The cooling-off period buys nothing against our own packages.
+minimumReleaseAgeExclude:
+  - '@marcalexiei/oxfmt-config'
+  - '@marcalexiei/oxlint-config'
+  - '@stats-forge/card-kit'
+
+# Reject a version with weaker publish trust evidence than an earlier one.
+trustPolicy: no-downgrade
+
+# Fail on unmet peers and on a Node version outside `engines`, instead of warning
+strictPeerDependencies: true
+engineStrict: true
+
+# An update re-resolves only what it bumps, leaving older copies another range would share.
+autoDedupe: true
+# Without it, a non-frozen install cannot tell the lockfile was deduped, and resolves it again.
+lockfile:
+  includeResolutionSettings: true

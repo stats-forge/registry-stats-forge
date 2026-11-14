@@ -1,0 +1,22 @@
+node_modules
+
+# OS
+.DS_Store
+
+# Project
+coverage
+build
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Agent scratch
+.claude/*
+!.claude/skills/
+
+# The CLI reads no token, but a stray one never lands in git.
+.env

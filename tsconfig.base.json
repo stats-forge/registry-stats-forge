@@ -1,0 +1,47 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // Type Checking
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Modules
+    "module": "nodenext",
+    "target": "esnext",
+    "types": [],
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "customConditions": [
+      /**
+       * Custom condition that resolved to original typescript source
+       * It allows realtime typechecking between packages without the need to rebuild them.
+
+       * Keep in sync with the `conditions` in each package's `vitest.config.ts`.
+       */
+      "@stats/source"
+    ],
+
+    // A relative import names the file that exists, so `node src/index.ts` resolves it.
+    "allowImportingTsExtensions": true,
+    // Required for the two `tsconfig.build.json` to emit: rewrites `./x.ts` to `./x.js`.
+    "rewriteRelativeImportExtensions": true,
+
+    // Emit
+    // Off by default so no `tsc` writes output unless explicitly opted in
+    "noEmit": true,
+
+    // Interop Constraints
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
+    // Completeness
+    "skipLibCheck": true
+  }
+}
