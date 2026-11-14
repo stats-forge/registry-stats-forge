@@ -36,11 +36,11 @@
   ],
   "exports": {
     "./api": {
-      "@stats/source": "./src/api/index.ts",
+      "@registry-stats-forge/source": "./src/api/index.ts",
       "default": "./build/api/index.js"
     },
     "./fetchers": {
-      "@stats/source": "./src/fetchers/index.ts",
+      "@registry-stats-forge/source": "./src/fetchers/index.ts",
       "default": "./build/fetchers/index.js"
     }
   },
