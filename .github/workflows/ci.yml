@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  # head_ref is empty on push, so each commit on main gets its own group and is never cancelled
+  group: '${{ github.workflow }}-${{ github.head_ref || github.sha }}'
+  cancel-in-progress: true
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-and-test:
+    name: Test ${{ matrix.node }} on ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [24, 26]
+        os: [ubuntu-26.04, macos-26]
+        # coverage on one leg: what the tests reach does not vary by platform
+        include:
+          - node: 26
+            os: ubuntu-26.04
+            coverage: true
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Dependencies
+        uses: marcalexiei/github-actions/setup-node-and-pnpm@4a51d6dfcaac0c263c6f2efd97249eafe0076721 # v2.5.0
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run tests
+        run: pnpm run "$TESTS"
+        env:
+          TESTS: ${{ matrix.coverage && 'test:coverage' || 'test' }}
+
+  code-checks:
+    name: Code checks
+
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Dependencies
+        uses: marcalexiei/github-actions/setup-node-and-pnpm@4a51d6dfcaac0c263c6f2efd97249eafe0076721 # v2.5.0
+
+      - name: Format
+        run: pnpm run format:check
+
+      - name: Lint
+        run: pnpm run lint:ci
+
+      - name: Lint (knip)
+        run: pnpm run lint:knip
+
+      # builds first, against each package's emitted `.d.ts`
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      # Relative specifiers are written `.ts` and rewritten on emit, so the published
+      # resolution is checked rather than assumed. `typecheck` above leaves the build in place.
+      - name: Lint (packaging and published types)
+        run: pnpm run lint:publish
+
+  github-actions-audit:
+    name: GitHub Actions audit
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read # required to check out the repository
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # the parent the changed-paths step diffs against
+      - name: Check changed paths
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        # a pull request checks out its merge commit, whose first parent is the base branch
+        run: |
+          if [ "${EVENT_NAME}" != pull_request ] || [ -n "$(git diff --name-only HEAD^1 HEAD -- .github)" ]; then
+            echo "github=true" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Run zizmor
+        if: ${{ steps.changes.outputs.github == 'true' }}
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          advanced-security: false
+          annotations: true
+      - name: Run jactionlint
+        # still runs when zizmor fails, so one run reports both
+        if: ${{ !cancelled() && steps.changes.outputs.github == 'true' }}
+        uses: jdx/jactionlint@baa8d685e2b27ff5821558c9eeabb2051c1da61b # v2.4.0
+        with:
+          online: strict # a lookup it cannot make fails the job instead of being skipped
+
+  ci-ok:
+    name: CI OK
+    runs-on: ubuntu-26.04
+    timeout-minutes: 1
+    if: ${{ always() }}
+    needs:
+      - build-and-test
+      - code-checks
+      - github-actions-audit
+    permissions:
+      actions: read # required to list the run's jobs
+      contents: read # required to read the workflow file
+    steps:
+      - name: Check needed jobs
+        uses: marcalexiei/github-actions/check-needs@4a51d6dfcaac0c263c6f2efd97249eafe0076721 # v2.5.0
+        with:
+          needs: ${{ toJSON(needs) }}

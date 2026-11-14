@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  # queue every push: without it, a newer run replaces the waiting one and that release is skipped
+  queue: max
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+# Skips the pre-commit hook: the release PR runs the full CI anyway.
+env:
+  LEFTHOOK: 0
+
+jobs:
+  release:
+    name: Release
+
+    environment: release-npm
+
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+
+    permissions:
+      contents: write # required to push release commits and tags
+      pull-requests: write # required to create and update release PRs
+      id-token: write # required for npm OIDC trusted publishing
+
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      # `[]` when the action sets no list, so the comment job's input still parses.
+      publishedPackages: ${{ steps.changesets.outputs['published-packages'] || '[]' }}
+
+    steps:
+      # A GitHub App token, not GITHUB_TOKEN: events from the default token do not
+      # start other workflows, so CI would never run on the release PR.
+      - name: Setup release helper
+        id: release-helper
+        uses: marcalexiei/github-actions/setup-github-app-user-bot@4a51d6dfcaac0c263c6f2efd97249eafe0076721 # v2.5.0
+        with:
+          app-id: ${{ vars.RELEASE_HELPER_APP_ID }}
+          private-key: ${{ secrets.RELEASE_HELPER_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        uses: marcalexiei/github-actions/setup-node-and-pnpm@4a51d6dfcaac0c263c6f2efd97249eafe0076721 # v2.5.0
+        with:
+          save-cache: false
+
+      # `pnpm release` builds, then `changeset publish` publishes every package whose
+      # version is not yet on npm, in dependency order.
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          github-token: ${{ steps.release-helper.outputs.token }}
+          commit-message: 'chore: release'
+          pr-title: 'chore: release'
+          pr-base-branch: main
+          publish-script: 'pnpm release'
+
+  # Its own job, so a comment that fails is a red job to re-run rather than an error swallowed
+  # inside a green release: the packages are already on npm by the time it runs.
+  comment:
+    name: Comment
+    needs: release
+    if: ${{ needs.release.outputs.published == 'true' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+
+    environment: release-npm # where the release helper's credentials live
+
+    permissions:
+      contents: read # required to check out the repository
+
+    steps:
+      # The app's token, not the default one: it carries issues:write, and the comments
+      # then come from the same bot that opened the release PR.
+      - name: Setup release helper
+        id: release-helper
+        uses: marcalexiei/github-actions/setup-github-app-user-bot@4a51d6dfcaac0c263c6f2efd97249eafe0076721 # v2.5.0
+        with:
+          app-id: ${{ vars.RELEASE_HELPER_APP_ID }}
+          private-key: ${{ secrets.RELEASE_HELPER_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # the commenter reads the history before the release commit
+
+      - name: Comment on shipped PRs and issues
+        uses: marcalexiei/changesets-release-commenter@97096fbe9cde74fcae784df963274998e0090a7c # v0.3.1
+        with:
+          github-token: ${{ steps.release-helper.outputs.token }}
+          published-packages: ${{ needs.release.outputs.publishedPackages }}

@@ -11,6 +11,7 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint",
+    "lint:ci": "oxlint --format=github",
     "lint:fix": "oxlint --fix",
     "lint:knip": "knip",
     "lint:publish": "pnpm -r --filter \"./packages/*\" run lint:publish",
