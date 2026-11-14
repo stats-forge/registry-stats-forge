@@ -49,3 +49,5 @@ pnpm check-all            # every check, cheapest first
 - **An exported zod param is annotated with a named type** (`TextParam`, `IntegerParam` in
   `api/params.ts`). Inferred, its emitted `.d.ts` names the kit's own copy of zod, which fails the
   build with TS2883 whenever the kit is linked.
+- **The source condition is named for this repo, `@registry-stats-forge/source`**: a name another
+  stats-forge workspace also sets would load this package's TypeScript from its `node_modules`.
