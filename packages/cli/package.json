@@ -1,6 +1,6 @@
 {
   "name": "@stats-forge/registry-stats-forge-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Render an npm package's or a crate's stats card to a local SVG file",
   "keywords": [
     "cli",

@@ -1,6 +1,6 @@
 {
   "name": "@stats-forge/registry-stats-forge-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Draw a package registry's stats as an SVG card: npm and crates.io",
   "keywords": [
     "cards",
