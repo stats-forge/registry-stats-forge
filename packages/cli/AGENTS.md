@@ -7,4 +7,6 @@
 - **`src/run.ts` takes everything it touches as `Io`**: config, working directory, both streams and
   the version, so its spec runs it in a `mkdtemp` dir against a fake registry. `src/index.ts` only
   binds it to the process, and `tests/index.spec.ts` imports it once per case.
+- **`vitest.config.ts` inlines card-kit**: vitest keeps a dependency loaded across
+  `vi.resetModules()`, and core registering its failures a second time throws.
 - **`bin.js` stays JavaScript**: pnpm links the bin before anything is built.
