@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@testing-library/dom": "10.4.2",
-    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/jest-dom": "8.0.0",
     "@types/node": "26.6.6",
     "jsdom": "catalog:default",
     "vitest": "catalog:default"
